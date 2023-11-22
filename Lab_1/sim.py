@@ -1,3 +1,8 @@
+# sim.py
+# Reference Taken from /it/kurs/datakom2/bake/source/ns-3.36/examples/tutorial/second.py
+# Edited for Lab in Computer Networks II 1DT074
+# Siriwardanage Don Supun Madusanka & Siva Shankar Siva Saravanan
+
 ##################################
 # This contains following topology
 #
@@ -18,11 +23,7 @@ import ns.flow_monitor
 import sys
 
 #######################################################################################
-# SEEDING THE RNG
-#
-# Enable this line to have random number being generated between runs.
 
-#ns.core.RngSeedManager.SetSeed(int(time.time() * 1000 % (2**31-1)))
 
 # command line inputs and other global parameters
 cmd = ns.core.CommandLine()
@@ -85,6 +86,7 @@ d4d3 = pointToPoint.Install(n4n3)
 csma = ns.csma.CsmaHelper()
 csma.SetChannelAttribute("DataRate", ns.core.StringValue(cmd.lanRate))
 csma.SetChannelAttribute("Delay", ns.core.TimeValue(ns.core.NanoSeconds(int(cmd.lanLatency))))
+
 # Install NIC
 csmaDevices = csma.Install(csmaNodes)
 
@@ -109,17 +111,7 @@ if(cmd.enTcpEr == "true"):
 # Set a TCP segment size (this should be inline with the channel MTU)
 ns.core.Config.SetDefault("ns3::TcpSocket::SegmentSize", ns.core.UintegerValue(1448))
 
-# If you want, you may set a default TCP version here. It will affect all TCP
-# connections created in the simulator. If you want to simulate different TCP versions
-# at the same time, see below for how to do that.
-#ns.core.Config.SetDefault("ns3::TcpL4Protocol::SocketType",
-#                          ns.core.StringValue("ns3::TcpTahoe"))
-#                          ns.core.StringValue("ns3::TcpReno"))
-#                          ns.core.StringValue("ns3::TcpLinuxReno"))
-#                          ns.core.StringValue("ns3::TcpWestwood"))
-
-# Some examples of attributes for some of the TCP versions.
-#ns.core.Config.SetDefault("ns3::TcpLinuxReno::ReTxThreshold", ns.core.UintegerValue(4))
+#Set TCP version as WestwoodPlus
 ns.core.Config.SetDefault("ns3::TcpWestwood::ProtocolType",
                           ns.core.StringValue("WestwoodPlus"))
 
@@ -164,15 +156,13 @@ def SetupTcpConnection(srcNode, dstNode, dstAddr, startTime, stopTime):
                       ns.core.StringValue("ns3::ConstantRandomVariable[Constant=2]"))
   on_off_tcp_helper.SetAttribute("OffTime",
                         ns.core.StringValue("ns3::ConstantRandomVariable[Constant=1]"))
-  #                      ns.core.StringValue("ns3::UniformRandomVariable[Min=1,Max=2]"))
-  #                      ns.core.StringValue("ns3::ExponentialRandomVariable[Mean=2]"))
 
   # Install the client on node srcNode
   client_apps = on_off_tcp_helper.Install(srcNode)
   client_apps.Start(startTime)
   client_apps.Stop(stopTime)
 
-
+# Setup TCP Connection between node 4 and node 3
 SetupTcpConnection(n4n3.Get(0), csmaNodes.Get(0), csmaInterfaces.GetAddress(0),
                    ns.core.Seconds(5.0), ns.core.Seconds(40.0))
 
@@ -218,7 +208,7 @@ clientApps.Stop(ns.core.Seconds(20.0))
 
 ns.internet.Ipv4GlobalRoutingHelper.PopulateRoutingTables()
 
-# Dump packets
+# Dump the Packetcapture files as pcap
 pointToPoint.EnablePcap("ring2", d0d1.Get(1), True)
 csma.EnablePcap ("csma", csmaDevices.Get(0), True)
 csma.EnablePcap ("csma", csmaDevices.Get(1), True)
